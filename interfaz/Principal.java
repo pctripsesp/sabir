@@ -37,7 +37,6 @@ public class Principal {
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 		
-		
 		new MarcoPrincipal();
 			
 	}
@@ -54,14 +53,16 @@ class MarcoPrincipal extends JFrame{
 	LaminaTurnos laminaTurnos;
 	private int mes,anyo,dia;
 	private int anyoSeleccionado = 1;
-	//private boolean primerInicio = true;
 	private String[] sAnyos = new String[3];
 	
 	
-	public static int width=1280,height=800;
+	public static int width=1280,height=950;
+	//public static int width=1280,height=800;
 	
 	public MarcoPrincipal() throws IOException{
 
+		//Adaptamos el ancho al número de semanas
+		adaptarMarco();
 		
 		setTitle("SABIR");
 		setSize(width, height);
@@ -70,6 +71,9 @@ class MarcoPrincipal extends JFrame{
 		
 		//Get current date
 		getCurrentDate();
+		
+		//Get último mes modificad
+		Cuadrante.getUltimoMesModificado();
 		
 		
 		/**
@@ -80,6 +84,31 @@ class MarcoPrincipal extends JFrame{
 		
 		setVisible(true);
 		
+	}
+	
+	
+	/**
+	 * ADAPTAR MARCO A NÚMERO DE SEMANAS
+	 */
+	public void adaptarMarco(){
+		
+		int numSemanas = Cuadrante.getNumSemanas();
+		
+		switch (numSemanas) {
+			case 4:
+				width=1280;
+				height=950;
+				break;
+			
+			case 5:
+				width=1560;
+				height=950;
+				break;
+				
+			default:
+				break;
+			}
+			
 	}
 	
 	
@@ -183,7 +212,10 @@ class MarcoPrincipal extends JFrame{
 		
 		//Carga lámina cuadrante y lámina contador con sus scrolls
 		cargarLaminaPrincipal();
-									
+			
+		//Hacemos un setter del número de semanas del mes actual
+		//Cuadrante.setNumSemanasEsteMes(Cuadrante.getNumSemanas());
+		Cuadrante.setNumSemanas();
 	}
 	
 		
@@ -318,7 +350,6 @@ class MarcoPrincipal extends JFrame{
 						tablaCuadrante.getColumnModel().getColumn(i).setMaxWidth(40);
 					}
 							
-					
 					cajaCuadrante.add(tablaCuadrante);
 					
 						//Hacemos ComboBox en los elementos de la tabla para poner los turnos
@@ -576,8 +607,7 @@ class MarcoPrincipal extends JFrame{
 				Personal.setPersonal(listaPersonal);
 				
 				//Reseteamos el último cuadrante modificado
-				Cuadrante.setUltimoMesModificado(mes);
-				Cuadrante.setUltimoAnyoMoficado(anyo);
+				Cuadrante.setUltimoMesModificado(mes,anyo);
 						
 				cambioLamina(0);
 			
@@ -661,7 +691,7 @@ class MarcoPrincipal extends JFrame{
 			//Etiqueas
 			etiquetaTitulo = new JLabel("TURNOS EXISTENTES:");
 			etiquetaTitulo.setAlignmentX(MarcoPrincipal.CENTER_ALIGNMENT);
-			etiquetaTurnos = new JLabel("M,N...");
+			etiquetaTurnos = new JLabel(pintarTurnos());
 			etiquetaTurnos.setAlignmentX(MarcoPrincipal.CENTER_ALIGNMENT);
 			
 			//Añadimos espacios verticales entre las cajas
@@ -684,6 +714,21 @@ class MarcoPrincipal extends JFrame{
 			botonAnyadir.setActionCommand("Añadir Turno");
 			botonAnyadir.addActionListener(this);
 			
+			
+		}
+		
+		//Construlle un string a partir de los elementos de la lista
+		public String pintarTurnos(){
+			
+			StringBuilder sb = new StringBuilder();
+			
+			for (String turno:listaTurnos){
+				
+				sb.append(turno+"  ");
+				
+			}
+			
+			return sb.toString();
 			
 		}
 				
@@ -730,7 +775,6 @@ class MarcoPrincipal extends JFrame{
 	
    }
 }
-
 
 
 
