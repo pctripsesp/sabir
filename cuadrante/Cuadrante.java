@@ -28,17 +28,83 @@ public class Cuadrante {
 		 */
 		//Este setter actualizará el último mes y año que ha modificado su personal, para tener siempre acutalizado desde el mes actual
 		
-		public static void setUltimoMesModificado(int ultimoMesModif){
+		public static void setUltimoMesModificado(int ultimoMesModif, int ultimoAnyoModif){
 			
-			ultimoMesModificado = ultimoMesModif; 
+			int[] ultimoMesMod = new int[2];
+	
+			ultimoMesModificado = ultimoMesModif;
+			ultimoAnyoModificado = ultimoAnyoModif;
+			
+			//Metemos mes y año en un array para almacenarlo como .data
+			ultimoMesMod[0] = ultimoMesModificado;
+			ultimoMesMod[1] = ultimoAnyoModificado;
+			
+			try {
+				
+				FileOutputStream fos = new FileOutputStream(new File(rutaArchivoCuadrante+"ultimoMesModificado"+".data"));
+				ObjectOutputStream oos = new ObjectOutputStream(fos);
+				
+				//Escribimos el array en el archivo
+				oos.writeObject(ultimoMesMod);
+				
+				//Cerramos
+				oos.close();
+				fos.close();
+				
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo");
+			}
 			
 		}
 		
-		public static void setUltimoAnyoMoficado(int ultimoAnyoModif){
+		
+		/**
+		 * GETTER ÚLTIMO MES MODIFICADO
+		 */
 			
-			ultimoAnyoModificado = ultimoAnyoModif;
+		public static void getUltimoMesModificado(){
 			
+			int[] ultimoMesMod = new int[2];
+			
+			try{
+				
+				//Comprobamos si el fichero existe y creamos sus directorios si no existen
+				File f = new File(rutaArchivoCuadrante+"ultimoMesModificado"+".data");
+				f.getParentFile().mkdirs();
+				
+					//Si el fichero no existe lo creamos con el mes actual
+					if (!f.exists()){	
+						
+						setUltimoMesModificado(ultimoMesModificado, ultimoAnyoModificado);
+						
+					}
+				
+				//Importamos el objeto serializado
+				FileInputStream fis = new FileInputStream(f);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				
+				//Leemos y almacenamos la lista
+				ultimoMesMod = (int[]) ois.readObject();
+				ois.close();
+				fis.close();
+				
+				
+			}catch (ClassNotFoundException c) {
+				System.out.println("clase no encontrada");
+				
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo");
+				
+			}
+			
+			ultimoMesModificado = ultimoMesMod[0];
+			ultimoAnyoModificado = ultimoMesMod[1];
+			
+			//No hacemos return porque ya lo almacenamos en la variable estática de la clase
+			//return ultimoMesMod;
 		}
+			
+
 		
 		
 		/**
@@ -234,7 +300,7 @@ public class Cuadrante {
 			
 			try{	
 				//Comprobamos si el fichero existe, y creamos los directorios si no existen
-				File f = new File (rutaArchivoCuadrante+mes+anyo+".data");
+				File f = new File (rutaArchivoCuadrante+mes+"-"+anyo+".data");
 				f.getParentFile().mkdirs();
 				
 				/**
@@ -245,21 +311,7 @@ public class Cuadrante {
 				
 				//Cargamos el personal actual
 				listaPersonal = Personal.getPersonal();
-				/*
-					if (!f.exists()){
-					
-						//creamos los arrays y los añadimos al cuadrante
-						for (int i=0; i<listaPersonal.size();i++){
-							
-							arrayTemp = new String[longitudArray];
-							arrayTemp[1] = listaPersonal.get(i).getNombre();
-							cuadrante.add(arrayTemp);		
-						}
-						
-						setCuadrante(cuadrante,mes,anyo);
-					}
-					
-				*/
+				
 					//Comprobamos si ha podido haber alguna actualización del personal para generar el cuadrante nuevo, cogiendo el 
 					//último mes modificado
 					if ((!f.exists()) || (mes >= ultimoMesModificado) && (anyo>= ultimoAnyoModificado)){				
@@ -312,7 +364,7 @@ public class Cuadrante {
 			
 			try{
 				
-				FileOutputStream fos = new FileOutputStream(new File(rutaArchivoCuadrante+mes+anyo+".data"));
+				FileOutputStream fos = new FileOutputStream(new File(rutaArchivoCuadrante+mes+"-"+anyo+".data"));
 				ObjectOutputStream oos = new ObjectOutputStream(fos);
 				
 				//Escribimos el objeto en el archivo
@@ -369,7 +421,69 @@ public class Cuadrante {
 			
 		}
 		
+		/**
+		 * GETTER NUM SEMANAS. Para adaptar el tamaño de la lámina
+		 */
 		
+		public static int getNumSemanas(){
+			
+			try{
+					
+				//Comprobamos si el fichero existe y creamos sus directorios si no existen
+				File f = new File(rutaArchivoCuadrante+"numSemanas.data");
+				f.getParentFile().mkdirs();
+				
+					//Si el fichero no existe, lo creamos con una lista con turnos por defecto
+					if (!f.exists()){
+						setNumSemanas();
+					}
+				
+				//Importamos el objeto serializado
+				FileInputStream fis = new FileInputStream(f);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				
+				//Leemos y almacenamos la lista
+				numSemanas = (int) ois.readObject();
+				ois.close();
+				fis.close();
+				
+				
+			}catch (ClassNotFoundException c) {
+				System.out.println("clase no encontrada");
+				
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo");
+				
+			}	
+			
+			return numSemanas;
+		
+		}
+		
+		
+		/**
+		 * SETTER NUM SEMANAS
+		 */
+		public static void setNumSemanas(){
+			
+			try{
+
+				FileOutputStream fos = new FileOutputStream(new File(rutaArchivoCuadrante+"numSemanas.data"));
+				ObjectOutputStream oos = new ObjectOutputStream(fos);
+				
+				//Escribimos el objeto en el archivo
+				oos.writeObject(numSemanas);
+				
+				//Cerramos 
+				oos.close();
+				fos.close();
+						
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo");
+			}
+			
+		}
+			
 		
 }
 
