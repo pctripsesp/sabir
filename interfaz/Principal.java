@@ -8,6 +8,7 @@ import cuadrante.Turnos;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -197,6 +198,7 @@ class MarcoPrincipal extends JFrame{
 	private JMenu menuEstadistica,menuPersonal,menuTurnos;
 	private JMenuBar barraMenu;
 	private JMenuItem añadirPersonal,borrarPersonal,modificarTurnos;
+
 	
 	private String[] sMeses = {"ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"};
 	
@@ -290,7 +292,6 @@ class MarcoPrincipal extends JFrame{
 				sMes.addActionListener(this);
 				sAnyo.addActionListener(this);
 				
-				
 				laminaFecha.add(sMes);
 				laminaFecha.add(sAnyo);
 				
@@ -352,14 +353,77 @@ class MarcoPrincipal extends JFrame{
 							
 					cajaCuadrante.add(tablaCuadrante);
 					
+					/**
+					 * 
+					 * ***********************************************
+					 * pendiente MODIFICAR COMBO EN FUNCIÓN DEL TURNO ANTERIOR**
+					 * ***********************************************
+					 * 
+					 * 
+					 * 
+					 */
+				
 						//Hacemos ComboBox en los elementos de la tabla para poner los turnos
 						//comboTurnos.setEditable(true); //Si queremos que se pueda escribir en la casilla
-						editorCombo = new DefaultCellEditor(cargarTurnos());
+						
+					
+						comboTurnos = cargarTurnos();
+						comboTurnos.setActionCommand("Seleccion Turno");
+						comboTurnos.addActionListener(this);
+						editorCombo = new DefaultCellEditor(comboTurnos);
+						
+						
+						//editorCombo = new DefaultCellEditor(cargarTurnos());
+		
 						for (int i=2; i<cabeceraCargada.length;i++){
 							columnasTurnos = tablaCuadrante.getColumnModel().getColumn(i);
-							columnasTurnos.setCellEditor(editorCombo);
+							columnasTurnos.setCellEditor(editorCombo);			
+							
 						}	
 						
+						
+						
+						/**
+						 * 
+						 * PRUEBAS
+						 * 
+						 * 
+						 */
+						
+						/*
+						//Ponemos a la escucha para los eventos
+						sMes.setActionCommand("Cambio Mes");
+						sAnyo.setActionCommand("Cambio Anyo");
+						sMes.addActionListener(this);
+						sAnyo.addActionListener(this);
+						*/
+						
+						
+						/*
+						//Ponemos las celdas a la escucha (PRUEBAS)
+						for (int row=0;row<tablaCuadrante.getRowCount();row++){
+							for (int column = 2; column < cabeceraCargada.length;column++){
+							
+								tablaCuadrante.getModel().getValueAt(row, column);
+								//tablaCuadrante.rowAtPoint(new Point(row,column));
+								
+							}
+						}
+						*/
+						//tablaCuadrante.getValueAt(row, column);
+						
+						
+						
+						/**
+						 * 
+						 * 
+						 * FIN
+						 * 
+						 * 
+						 * 
+						 * 
+						 * 
+						 */
 						
 						//Scroll Caja Cuadrante   
 						scrollCuadrante=new JScrollPane(tablaCuadrante, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -452,7 +516,31 @@ class MarcoPrincipal extends JFrame{
 	}
 	
 	
+	/**
+	 * Guardar Datos del Cuadrante
+	 */
+	private void guardarCuadrante(){
+		
+		ArrayList<String[]> cuadranteGuardado = new ArrayList<>();
+		String[] filaGuardada = new String[cabeceraCargada.length];
+		String valorCelda;
+		
+		
+		for (int row=0; row<tablaCuadrante.getModel().getRowCount();row++){
+			for (int column=0; column<tablaCuadrante.getModel().getColumnCount();column++){	
+				
+				valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
+				filaGuardada[column] = valorCelda;
+			}
+			cuadranteGuardado.add(filaGuardada);
+		}
+		
+		
+		System.out.println(cuadranteGuardado.size());
+		Cuadrante.setCuadrante(cuadranteGuardado, mes,anyo);
 
+	}
+	
 
 
 	/**
@@ -475,8 +563,11 @@ class MarcoPrincipal extends JFrame{
 			break;
 			
 		case "Cambio Mes":
-			mes = sMes.getSelectedIndex();
-			cambioLamina(0);
+			if (mes!=sMes.getSelectedIndex()){
+				mes = sMes.getSelectedIndex();
+				cambioLamina(0);
+			}
+			
 			break;
 			
 		case "Cambio Anyo":
@@ -485,6 +576,13 @@ class MarcoPrincipal extends JFrame{
 			anyo = Integer.parseInt(sAnyos[sAnyo.getSelectedIndex()]);
 			
 			cambioLamina(0);
+			break;
+		
+		case "Seleccion Turno":
+			//Reiniciamos si selecciona algún turno
+			//String turnoSeleccionado = (String) comboTurnos.getSelectedItem();
+			guardarCuadrante();
+			//cambioLamina(0);
 			break;
 			
 			
@@ -775,6 +873,7 @@ class MarcoPrincipal extends JFrame{
 	
    }
 }
+
 
 
 
