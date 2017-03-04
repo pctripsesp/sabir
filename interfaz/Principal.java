@@ -815,7 +815,7 @@ class MarcoPrincipal extends JFrame{
 			
 		}
 		
-		//Construlle un string a partir de los elementos de la lista
+		//Construye un string a partir de los elementos de la lista
 		public String pintarTurnos(){
 			
 			StringBuilder sb = new StringBuilder();
