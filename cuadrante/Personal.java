@@ -12,6 +12,9 @@ import java.util.List;
 
 public class Personal implements Serializable{
 	
+
+	private static final long serialVersionUID = 1L;
+	
 	private static String rutaArchivoPersonal = System.getProperty("user.home")+"/sabir/data/personal/personal.data";
 	private String nombre,telefono,direccion,observaciones;
 

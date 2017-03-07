@@ -216,7 +216,6 @@ class MarcoPrincipal extends JFrame{
 		cargarLaminaPrincipal();
 			
 		//Hacemos un setter del número de semanas del mes actual
-		//Cuadrante.setNumSemanasEsteMes(Cuadrante.getNumSemanas());
 		Cuadrante.setNumSemanas();
 	}
 	
@@ -526,19 +525,18 @@ class MarcoPrincipal extends JFrame{
 		String valorCelda;
 		
 		
-		for (int row=0; row<tablaCuadrante.getModel().getRowCount();row++){
+		for(int row=0;row<tablaCuadrante.getModel().getRowCount();row++){
 			for (int column=0; column<tablaCuadrante.getModel().getColumnCount();column++){	
-				
 				valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
 				filaGuardada[column] = valorCelda;
-			}
+						 
+			}		
 			cuadranteGuardado.add(filaGuardada);
-		}
+			filaGuardada = new String[cabeceraCargada.length];		
+			
+		}	
 		
-		
-		System.out.println(cuadranteGuardado.size());
 		Cuadrante.setCuadrante(cuadranteGuardado, mes,anyo);
-
 	}
 	
 
@@ -580,9 +578,11 @@ class MarcoPrincipal extends JFrame{
 		
 		case "Seleccion Turno":
 			//Reiniciamos si selecciona algún turno
-			//String turnoSeleccionado = (String) comboTurnos.getSelectedItem();
-			guardarCuadrante();
-			//cambioLamina(0);
+			if (comboTurnos.getSelectedItem()!=null){
+				guardarCuadrante();
+			}
+			
+		
 			break;
 			
 			
@@ -709,9 +709,7 @@ class MarcoPrincipal extends JFrame{
 						
 				cambioLamina(0);
 			
-			}
-			
-			
+			}		
 		}
 		
 		
@@ -738,9 +736,7 @@ class MarcoPrincipal extends JFrame{
 				break;
 				
 			}
-		}
-		
-		
+		}		
 	}
 
 
@@ -815,19 +811,17 @@ class MarcoPrincipal extends JFrame{
 			
 		}
 		
-		//Construlle un string a partir de los elementos de la lista
+		//Construye un string a partir de los elementos de la lista
 		public String pintarTurnos(){
 			
 			StringBuilder sb = new StringBuilder();
 			
 			for (String turno:listaTurnos){
 				
-				sb.append(turno+"  ");
-				
+				sb.append(turno+"  ");		
 			}
 			
-			return sb.toString();
-			
+			return sb.toString();		
 		}
 				
 			
