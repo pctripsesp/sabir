@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 
 public class Cuadrante {
@@ -21,7 +22,13 @@ public class Cuadrante {
 		public static void main(String[] args) {
 			// TODO Auto-generated method stub
 		
-		getCuadrante(2, 2017);
+		List<Personal> listPersonal= new ArrayList<>();	
+		listPersonal = Personal.getPersonal();
+		
+		for(Personal persona:listPersonal){
+			System.out.println(persona.getNombre());
+		}
+		
 		}
 
 		/**
@@ -61,9 +68,10 @@ public class Cuadrante {
 		
 		/**
 		 * GETTER ÚLTIMO MES MODIFICADO
+		 * @return 
 		 */
 			
-		public static void getUltimoMesModificado(){
+		public static int[] getUltimoMesModificado(){
 			
 			int[] ultimoMesMod = new int[2];
 			
@@ -94,15 +102,15 @@ public class Cuadrante {
 				System.out.println("clase no encontrada");
 				
 			}catch (IOException e) {
-				System.out.println("No se ha encontrado el archivo");
+				System.out.println("No se ha encontrado el archivo GET ULTIMO MES MODIFICADO");
 				
 			}
 			
 			ultimoMesModificado = ultimoMesMod[0];
 			ultimoAnyoModificado = ultimoMesMod[1];
 			
-			//No hacemos return porque ya lo almacenamos en la variable estática de la clase
-			//return ultimoMesMod;
+			
+			return ultimoMesMod;
 		}
 			
 
@@ -343,7 +351,6 @@ public class Cuadrante {
 				
 				}else{
 					
-
 					//Importamos el objeto serializado
 					FileInputStream fis = new FileInputStream(f);
 					ObjectInputStream ois = new ObjectInputStream(fis);
@@ -358,16 +365,7 @@ public class Cuadrante {
 					for (String[] fila:cuadrante){
 						listaNombresCuadrante.add(fila[1]);
 					}
-					
-					
-					for (int i=0;i<cuadrante.size();i++){
-						
-
-						listaNombresCuadrante.add(cuadrante.get(i)[1]);
-					}
-					
-				
-				
+									
 					//Comprobamos si está actualizado
 					if ((mes >= ultimoMesModificado) && (anyo >= ultimoAnyoModificado)){
 						 //Tenemos dos listas que comparar: la de personal actualizado, y el cuadrante cargado. 
@@ -375,30 +373,30 @@ public class Cuadrante {
 						 //2. Vemos si alguna persona de la lista no está en el cuadrante cargado --> añadimos una fila con ese nombre y los turnos en blanco
 						 
 							
-						//1.	
-						for (String[] fila:cuadrante){
-								
-							if (!listaNombresPersonal.contains(fila[1])){
-										
-								cuadrante.remove(fila);									
-							}								
+						//1.		
+						Iterator<String[]> it = cuadrante.iterator();
+						
+						while(it.hasNext()){
+							if (!listaNombresPersonal.contains(it.next()[1])){							
+								it.remove();
+								setCuadrante(cuadrante,mes,anyo);
+							}
 						}
-
+						
+						
+						 
+						
+						
 						//2.
 						for (String nombreLista:listaNombresPersonal){													
 							if (!listaNombresCuadrante.contains(nombreLista)){
 								//Añadimos un array con el nuevo nombre al cuadrante
 								String[] arrayNuevoNombre = new String[longitudArray];
 								arrayNuevoNombre[1]=nombreLista;
-								cuadrante.add(arrayNuevoNombre);
-								
+								cuadrante.add(arrayNuevoNombre);				
 							}
 						}
-						
-	
-						setCuadrante(cuadrante,mes,anyo);
-													
-						
+						setCuadrante(cuadrante,mes,anyo);										
 					}
 				}
 				
@@ -409,12 +407,8 @@ public class Cuadrante {
 			}catch (IOException e) {
 				System.out.println("No se ha encontrado el archivo GET CUADRANTE");
 		
-			}
-							
-			
-		return cuadrante;
-			
-			
+			}		
+		return cuadrante;		
 		}
 						
 		
@@ -439,7 +433,6 @@ public class Cuadrante {
 			}catch (IOException e) {
 				System.out.println("No se ha encontrado el archivo CUADRANTE");
 			}
-			
 		}
 
 		
@@ -479,8 +472,7 @@ public class Cuadrante {
 			contador[2][0] = "NOCHE";
 			
 			
-			return contador;
-			
+			return contador;		
 		}
 		
 		/**

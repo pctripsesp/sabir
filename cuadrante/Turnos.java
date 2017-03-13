@@ -56,6 +56,7 @@ public class Turnos {
 					listaTurnos.add("T");
 					listaTurnos.add("N");
 					listaTurnos.add("S");
+					listaTurnos.add(" ");
 					
 					setTurnos(listaTurnos);
 				}

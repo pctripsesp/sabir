@@ -11,11 +11,15 @@ import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.print.attribute.standard.OutputDeviceAssigned;
 import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -27,6 +31,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -137,7 +142,7 @@ class MarcoPrincipal extends JFrame{
 		
 		//Principal
 		case 0:
-			
+			Cuadrante.getUltimoMesModificado();
 			try {
 				laminaPrincipal = new LaminaPrincipal();
 				getContentPane().removeAll();
@@ -166,7 +171,6 @@ class MarcoPrincipal extends JFrame{
 			setVisible(true);
 			break;	
 			
-
 		default:
 			break;
 		}
@@ -350,6 +354,15 @@ class MarcoPrincipal extends JFrame{
 						tablaCuadrante.getColumnModel().getColumn(i).setMaxWidth(40);
 					}
 							
+					//Eventos click en tabla POPUP MENU
+					JPopupMenu MenuPopupEliminar = new JPopupMenu();
+					JMenuItem eliminarPopup = new JMenuItem("Eliminar persona");
+					eliminarPopup.setActionCommand("Eliminar Persona");
+					eliminarPopup.addActionListener(this);
+					MenuPopupEliminar.add(eliminarPopup);
+					tablaCuadrante.setComponentPopupMenu(MenuPopupEliminar);
+					
+					
 					cajaCuadrante.add(tablaCuadrante);
 					
 					/**
@@ -380,50 +393,7 @@ class MarcoPrincipal extends JFrame{
 							
 						}	
 						
-						
-						
-						/**
-						 * 
-						 * PRUEBAS
-						 * 
-						 * 
-						 */
-						
-						/*
-						//Ponemos a la escucha para los eventos
-						sMes.setActionCommand("Cambio Mes");
-						sAnyo.setActionCommand("Cambio Anyo");
-						sMes.addActionListener(this);
-						sAnyo.addActionListener(this);
-						*/
-						
-						
-						/*
-						//Ponemos las celdas a la escucha (PRUEBAS)
-						for (int row=0;row<tablaCuadrante.getRowCount();row++){
-							for (int column = 2; column < cabeceraCargada.length;column++){
-							
-								tablaCuadrante.getModel().getValueAt(row, column);
-								//tablaCuadrante.rowAtPoint(new Point(row,column));
-								
-							}
-						}
-						*/
-						//tablaCuadrante.getValueAt(row, column);
-						
-						
-						
-						/**
-						 * 
-						 * 
-						 * FIN
-						 * 
-						 * 
-						 * 
-						 * 
-						 * 
-						 */
-						
+												
 						//Scroll Caja Cuadrante   
 						scrollCuadrante=new JScrollPane(tablaCuadrante, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 						scrollCuadrante.setPreferredSize(new Dimension(1000,100));
@@ -539,6 +509,39 @@ class MarcoPrincipal extends JFrame{
 		Cuadrante.setCuadrante(cuadranteGuardado, mes,anyo);
 	}
 	
+	
+	/**
+	 * Eliminar persona. Devuelve lista con el Personal actualizado
+	 */
+	public void eliminarPersona(){
+		 
+		//Cargamos la lista actual de personas	
+		String personaSeleccionada = (String) tablaCuadrante.getValueAt(tablaCuadrante.getSelectedRow(), 1);
+		List<Personal> listaPersonalE = null;
+		
+		//Mensaje confirmación
+		if(JOptionPane.showConfirmDialog(null, "¿Está seguro de que quiere eliminar a "+personaSeleccionada+"?","Eliminar persona del cuadrante",2,JOptionPane.WARNING_MESSAGE)==JOptionPane.YES_OPTION){
+				
+			listaPersonalE = new ArrayList<>();
+			
+			//Cargamos el archivo
+			listaPersonalE = Personal.getPersonal();
+		
+			//Utilizamos un iterador para poder modificar la lista durante el loop (con un bucle for each salta excepción java.util.ConcurrentModificationException)
+			Iterator<Personal> it = listaPersonalE.iterator();
+			
+			while(it.hasNext()){	
+				if(it.next().getNombre().equals(personaSeleccionada)){
+					Cuadrante.setUltimoMesModificado(mes,anyo);
+					it.remove();
+					//Actualizamos la lista de personal
+					Personal.setPersonal(listaPersonalE);
+				}
+			}
+			
+		}		
+	}
+	
 
 
 	/**
@@ -565,7 +568,6 @@ class MarcoPrincipal extends JFrame{
 				mes = sMes.getSelectedIndex();
 				cambioLamina(0);
 			}
-			
 			break;
 			
 		case "Cambio Anyo":
@@ -582,23 +584,28 @@ class MarcoPrincipal extends JFrame{
 				guardarCuadrante();
 			}
 			
-		
+		case "Eliminar Persona":
+			//Por alguna razón al abrir el JComboBox de cualquier turno se ejecuta el evento también, para evitarlo le pedimos que sea de la clase JMenuItem
+			if (arg0.getSource().getClass().getSimpleName().equalsIgnoreCase("JMenuItem")){	
+				eliminarPersona();
+				cambioLamina(0);
+			}		
 			break;
 			
 			
 		default:
 			break;
 			
-		}
-		
-		
+		}			
 	}
+
 	
-		
 	
 	
 }
 
+
+	
 	
 	/**
 	 * Esta lámina se cargará al seleccionar "personal" en el menú
