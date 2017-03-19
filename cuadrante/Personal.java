@@ -20,7 +20,7 @@ public class Personal implements Serializable{
 
 	
 
-	//Mínimo debería introducir nombre*
+	//Mínimo debería introducir nombre
 	public Personal(String nombre, String telefono, String direccion, String observaciones){
 		
 		this.nombre = nombre;

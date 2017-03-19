@@ -63,7 +63,6 @@ class MarcoPrincipal extends JFrame{
 	
 	
 	public static int width=1280,height=950;
-	//public static int width=1280,height=800;
 	
 	public MarcoPrincipal() throws IOException{
 
@@ -201,7 +200,7 @@ class MarcoPrincipal extends JFrame{
 	private JComboBox<String> comboTurnos, sMes,sAnyo;
 	private JMenu menuEstadistica,menuPersonal,menuTurnos;
 	private JMenuBar barraMenu;
-	private JMenuItem añadirPersonal,borrarPersonal,modificarTurnos;
+	private JMenuItem añadirPersonal,modificarTurnos;
 
 	
 	private String[] sMeses = {"ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"};
@@ -221,6 +220,8 @@ class MarcoPrincipal extends JFrame{
 			
 		//Hacemos un setter del número de semanas del mes actual
 		Cuadrante.setNumSemanas();
+		
+		
 	}
 	
 		
@@ -253,10 +254,8 @@ class MarcoPrincipal extends JFrame{
 				
 				//Le damos un nombre al ActionCommand para capturar de donde vendrá el evento al hacer click
 				añadirPersonal.setActionCommand("Añadir Personal");
-				borrarPersonal = new JMenuItem("Eliminar");
 				menuPersonal.add(añadirPersonal);
-				menuPersonal.add(borrarPersonal);
-				
+	
 				//Evento añadir personal
 				añadirPersonal.addActionListener(this);
 				
@@ -300,8 +299,11 @@ class MarcoPrincipal extends JFrame{
 				
 				//Botón auto
 				botonAuto = new JButton("Auto");
-				//Botón GUARDAR
-				botonGuardar = new JButton("GUARDAR");
+				//Botón Guardar
+				botonGuardar = new JButton("EXPORTAR");
+				botonGuardar.setActionCommand("Exportar Excel");
+				botonGuardar.addActionListener(this);
+				
 				laminaFecha.add(botonAuto);
 				laminaFecha.add(botonGuardar);
 				
@@ -436,7 +438,7 @@ class MarcoPrincipal extends JFrame{
 						scrollContador.setMaximumSize(new Dimension(2000,80));
 					
 					cajaContador.add(scrollContador);
-						
+					actualizarContador();	
 
 				
 				//Creamos el scroll de todas las tablas
@@ -485,6 +487,59 @@ class MarcoPrincipal extends JFrame{
 	}
 	
 	
+	
+	/**
+	 * Actualizar contador. Sumamos todos los turnos
+	 */
+	
+	private void actualizarContador(){
+		
+		int contarM = 0, contarT=0, contarN=0;
+		
+		for (int column=2; column<tablaCuadrante.getModel().getColumnCount();column++){
+			contarM=0;
+			contarT=0;
+			contarN=0;
+			for(int row=0;row<tablaCuadrante.getModel().getRowCount();row++){
+		
+				String valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
+			
+				if (valorCelda!=null){			
+					switch (valorCelda) {	
+					case "M":
+						contarM++;
+						break;
+						
+					case "T":
+						contarT++;
+						break;
+						
+					case "N":
+						contarN++;
+						break;
+	
+					default:
+						break;
+					}
+				
+				}	
+			}
+						
+			//M
+			tablaContador.getModel().setValueAt(String.valueOf(contarM), 0, column-1);
+			
+			//T
+			tablaContador.getModel().setValueAt(String.valueOf(contarT), 1, column-1);
+			
+			//N
+			tablaContador.getModel().setValueAt(String.valueOf(contarN), 2, column-1);
+				
+			}
+		}
+		
+	
+	
+	
 	/**
 	 * Guardar Datos del Cuadrante
 	 */
@@ -504,8 +559,7 @@ class MarcoPrincipal extends JFrame{
 			cuadranteGuardado.add(filaGuardada);
 			filaGuardada = new String[cabeceraCargada.length];		
 			
-		}	
-		
+		}		
 		Cuadrante.setCuadrante(cuadranteGuardado, mes,anyo);
 	}
 	
@@ -537,8 +591,7 @@ class MarcoPrincipal extends JFrame{
 					//Actualizamos la lista de personal
 					Personal.setPersonal(listaPersonalE);
 				}
-			}
-			
+			}	
 		}		
 	}
 	
@@ -582,7 +635,13 @@ class MarcoPrincipal extends JFrame{
 			//Reiniciamos si selecciona algún turno
 			if (comboTurnos.getSelectedItem()!=null){
 				guardarCuadrante();
+				actualizarContador();				
 			}
+			break;
+			
+		case "Exportar Excel":
+			Cuadrante.toExcel(cuadranteCargado, cabeceraCargada, mes, anyo);
+			break;
 			
 		case "Eliminar Persona":
 			//Por alguna razón al abrir el JComboBox de cualquier turno se ejecuta el evento también, para evitarlo le pedimos que sea de la clase JMenuItem
@@ -603,7 +662,6 @@ class MarcoPrincipal extends JFrame{
 	
 	
 }
-
 
 	
 	
@@ -831,8 +889,7 @@ class MarcoPrincipal extends JFrame{
 			return sb.toString();		
 		}
 				
-			
-			
+		
 			/**
 			 * EVENTOS DE LA LÁMINA TURNOS
 			 */

@@ -15,6 +15,18 @@ import java.util.List;
 public class Turnos {
 	
 	private static String rutaArchivoTurnos = System.getProperty("user.home")+"/sabir/data/turnos/turnos.data";
+	private String nombreTurno, equivaleTurno;
+	private int numHoras;
+	private boolean auto;
+	
+	public Turnos(String nombreTurno, boolean auto, int numHoras, String equivaleTurno){
+		
+		this.nombreTurno = nombreTurno;
+		this.auto = auto;
+		this.numHoras = numHoras;
+		this.equivaleTurno = equivaleTurno;
+		
+	}
 	
 	
 	//SETTER turnos; la existencia del archivo se comprueba en el getter

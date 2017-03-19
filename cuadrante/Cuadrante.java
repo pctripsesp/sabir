@@ -7,11 +7,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
+
+import jxl.Workbook;
+import jxl.write.Label;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 public class Cuadrante {
 
@@ -21,13 +26,7 @@ public class Cuadrante {
 		
 		public static void main(String[] args) {
 			// TODO Auto-generated method stub
-		
-		List<Personal> listPersonal= new ArrayList<>();	
-		listPersonal = Personal.getPersonal();
-		
-		for(Personal persona:listPersonal){
-			System.out.println(persona.getNombre());
-		}
+
 		
 		}
 
@@ -315,9 +314,7 @@ public class Cuadrante {
 				//Comprobamos si el fichero existe, y creamos los directorios si no existen
 				File f = new File (rutaArchivoCuadrante+mes+"-"+anyo+".data");
 				f.getParentFile().mkdirs();
-				
-				
-				
+								
 				//Cargamos el nombre del personal actual en una lista
 				listaDatosPersonal = Personal.getPersonal();
 				
@@ -383,10 +380,7 @@ public class Cuadrante {
 							}
 						}
 						
-						
-						 
-						
-						
+				
 						//2.
 						for (String nombreLista:listaNombresPersonal){													
 							if (!listaNombresCuadrante.contains(nombreLista)){
@@ -506,7 +500,7 @@ public class Cuadrante {
 				System.out.println("clase no encontrada");
 				
 			}catch (IOException e) {
-				System.out.println("No se ha encontrado el archivo NUMERO DE SEMANAS");
+				System.out.println("No se ha encontrado el archivo NÚMERO DE SEMANAS");
 				
 			}	
 			
@@ -533,11 +527,58 @@ public class Cuadrante {
 				fos.close();
 						
 			}catch (IOException e) {
-				System.out.println("No se ha encontrado el archivo NUMERO DE SEMANAS");
+				System.out.println("No se ha encontrado el archivo NÚMERO DE SEMANAS");
 			}
 			
 		}
 			
+		
+
+		/**
+		 * Pasamos datos cuadrante a una hoja Excel. Se podría hacer desde la Tabla, lo hacemos desde los arrays cargados
+		 */
+		public static void toExcel(ArrayList<String[]> datosCuadrante, String[] datosCabecera, int mes, int anyo){	
+			
+			//Para que coincida Enero-1, Febrero-2...
+			mes++;
+			
+			try {
+				
+				//Comprobamos si el fichero existe y creamos sus directorios si no existen
+				File f = new File(rutaArchivoCuadrante+"/Excel/"+mes+"-"+anyo+".xls");
+				f.getParentFile().mkdirs();
+				
+				WritableWorkbook libro1 = Workbook.createWorkbook(f);
+				WritableSheet hoja1 = libro1.createSheet(mes+"-"+anyo, 0);
+				
+				//Cabecera
+				for (int i=0;i<datosCabecera.length;i++){
+					Label celdaCabecera = new Label (i, 0, datosCabecera[i]);
+					hoja1.addCell(celdaCabecera);
+				}
+						
+				//Cuadrante
+				for (int j=0; j<datosCuadrante.size();j++){
+					for (int i=0; i<datosCabecera.length;i++){
+						
+						Label celda = new Label(i,j+1,datosCuadrante.get(j)[i]);
+						
+						hoja1.addCell(celda);
+					}
+				}
+										
+		        libro1.write();
+		        libro1.close();
+			
+			
+			} catch (IOException | WriteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
+		
 		
 }
 
