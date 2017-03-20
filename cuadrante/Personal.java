@@ -85,7 +85,7 @@ public class Personal implements Serializable{
 			System.out.println("clase no encontrada");
 			
 		}catch (IOException e) {
-			System.out.println("No se ha encontrado el archivo");
+			System.out.println("No se ha encontrado el archivo PERSONAL");
 			
 		}
 				

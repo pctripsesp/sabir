@@ -16,13 +16,16 @@ import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.print.attribute.standard.OutputDeviceAssigned;
 import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -60,6 +63,8 @@ class MarcoPrincipal extends JFrame{
 	private int mes,anyo,dia;
 	private int anyoSeleccionado = 1;
 	private String[] sAnyos = new String[3];
+	private Map<String,Float> mapaHoraTurno;
+	private Map<String,String> mapaEquivaleTurno;
 	
 	
 	public static int width=1280,height=950;
@@ -185,10 +190,12 @@ class MarcoPrincipal extends JFrame{
 	private class LaminaPrincipal extends JPanel implements ActionListener{
 		
 		private static final long serialVersionUID = 1L;
+		
 	/**
 	 * Variables
 	 */
-	private List<String> turnosCargados;
+	private List<Turnos> turnosCargados;
+	private List<String> listaNombresTurnos;
 	private ArrayList<String[]> cuadranteCargado;
 	private String [] cabeceraCargada,turnosArray,cabeceraContador;
 	private String [][] cuadranteArray, datosContador;
@@ -208,7 +215,6 @@ class MarcoPrincipal extends JFrame{
 	
 	
 	public LaminaPrincipal() throws IOException{
-		
 		
 		setLayout(new BorderLayout());
 		
@@ -470,20 +476,60 @@ class MarcoPrincipal extends JFrame{
 
 	
 	/**
-	 * Cargamos los turnos  
+	 * Cargamos los turnos. Cargamos el mapa de horas para el contador de la tabla cuadrante.
+	 * Cargamos el mapa de equivalencias de turnos para el contador  
 	 */
 	private JComboBox<String> cargarTurnos() throws IOException{
 		
-		//Cargamos lor turnos (nos da un List<String>)
+		String nombre,equivale;
+		float horas;
+		
+		turnosCargados = new ArrayList<>();
+		listaNombresTurnos = new ArrayList<>();
+		mapaHoraTurno = new HashMap<String, Float>();
+		mapaEquivaleTurno = new HashMap<String,String>();
+		
+		//Cargamos lor turnos (nos da un List<Turnos>)
 		turnosCargados = Turnos.getTurnos();
 		
+		for (int i=0; i<turnosCargados.size();i++){
+			nombre = turnosCargados.get(i).getNombre();
+			horas = turnosCargados.get(i).getHoras();
+			equivale = turnosCargados.get(i).getEquivale();
+			
+			listaNombresTurnos.add(nombre);
+			mapaHoraTurno.put(nombre, horas);
+			mapaEquivaleTurno.put(nombre, equivale);
+		}
+		
 		//Los pasamos a arrays
-		turnosArray = new String [turnosCargados.size()];
-		turnosArray = turnosCargados.toArray(turnosArray);
+		turnosArray = new String [listaNombresTurnos.size()];
+		turnosArray = listaNombresTurnos.toArray(turnosArray);
 		comboTurnos = new JComboBox<>(turnosArray);
 		
 		return comboTurnos;
 		
+	}
+	
+	
+	
+	/**
+	 * Acualizar horas. Sumamos las horas por efectivo
+	 */
+	private void actualizarHoras(){
+		float contar = 0;
+
+		for (int row=0; row<tablaCuadrante.getModel().getRowCount();row++){
+			contar=0;
+			for (int column=2; column<tablaCuadrante.getColumnCount();column++){		
+				String valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
+				
+				if (valorCelda!=null && mapaHoraTurno.containsKey(valorCelda)){
+					contar += mapaHoraTurno.get(valorCelda);				
+				}
+			}
+			tablaCuadrante.getModel().setValueAt(String.valueOf(contar), row, 0);	
+		}	
 	}
 	
 	
@@ -503,9 +549,12 @@ class MarcoPrincipal extends JFrame{
 			for(int row=0;row<tablaCuadrante.getModel().getRowCount();row++){
 		
 				String valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
+				
 			
-				if (valorCelda!=null){			
-					switch (valorCelda) {	
+				if (valorCelda!=null){
+					String valorEquivale = mapaEquivaleTurno.get(valorCelda);
+					
+					switch (valorEquivale) {	
 					case "M":
 						contarM++;
 						break;
@@ -517,6 +566,10 @@ class MarcoPrincipal extends JFrame{
 					case "N":
 						contarN++;
 						break;
+						
+					case "X":
+						contarM++;
+						contarN++;
 	
 					default:
 						break;
@@ -535,6 +588,57 @@ class MarcoPrincipal extends JFrame{
 			tablaContador.getModel().setValueAt(String.valueOf(contarN), 2, column-1);
 				
 			}
+		
+		
+		/*
+		
+		for (int column=2; column<tablaCuadrante.getModel().getColumnCount();column++){
+			contarM=0;
+			contarT=0;
+			contarN=0;
+			for(int row=0;row<tablaCuadrante.getModel().getRowCount();row++){
+		
+				String valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
+			
+			
+				if (valorCelda!=null){			
+					switch (valorCelda) {	
+					case "M":
+						contarM++;
+						break;
+						
+					case "T":
+						contarT++;
+						break;
+						
+					case "N":
+						contarN++;
+						break;
+						
+					case "X":
+						contarM++;
+						contarN++;
+	
+					default:
+						break;
+					}
+				
+				}	
+			}
+						
+			//M
+			tablaContador.getModel().setValueAt(String.valueOf(contarM), 0, column-1);
+			
+			//T
+			tablaContador.getModel().setValueAt(String.valueOf(contarT), 1, column-1);
+			
+			//N
+			tablaContador.getModel().setValueAt(String.valueOf(contarN), 2, column-1);
+				
+			}
+		
+		*/
+		
 		}
 		
 	
@@ -634,6 +738,7 @@ class MarcoPrincipal extends JFrame{
 		case "Seleccion Turno":
 			//Reiniciamos si selecciona algún turno
 			if (comboTurnos.getSelectedItem()!=null){
+				actualizarHoras();
 				guardarCuadrante();
 				actualizarContador();				
 			}
@@ -812,40 +917,80 @@ class MarcoPrincipal extends JFrame{
 
 		private static final long serialVersionUID = 1L;
 		
-		private JTextField textoTurnos;
-		private Box cajaFondo,cajaBotones;
+		private JTextField textoTurnos, textoHoras;
+		private JCheckBox checkAuto;
+		private JComboBox<String> comboTurnos;
+		private Box cajaFondo,cajaBotones, cajaOpciones,cajaTextoTurno;
 		private JButton botonEliminar,botonAnyadir,botonCancelar;
-		private JLabel etiquetaTurnos, etiquetaTitulo;
-		private List<String> listaTurnos;
+		private JLabel etiquetaTurnos, etiquetaTitulo, etiquetaEquivale, etiquetaNumHoras;
+		private List<String> listaNombreTurnos;
+		private List<Turnos> listaTurnos;
+ 		private String[] turnosArray;
 		
 		public LaminaTurnos(){
+			
+			//Cargamos los turnos M,T,N para el contador
+			turnosArray = new String[5];
+			turnosArray[0]=" ";
+			turnosArray[1]="M";
+			turnosArray[2]="T";
+			turnosArray[3]="N";
+			turnosArray[4]="X";
 			
 			//Cargamos los turnos actuales
 			listaTurnos = new ArrayList<>();
 			listaTurnos = Turnos.getTurnos();
 			
+			listaNombreTurnos = new ArrayList<>();
+			
+			for (int i=0; i<listaTurnos.size();i++){
+				
+				listaNombreTurnos.add(listaTurnos.get(i).getNombre());
+
+			}
+			
 			//Cajas contenedoras
 			cajaFondo = Box.createVerticalBox();
+			cajaOpciones = Box.createHorizontalBox();
+			cajaTextoTurno = Box.createHorizontalBox();
 			cajaBotones = Box.createHorizontalBox();
 			
 			add(cajaFondo,BorderLayout.CENTER);
 			
-			//Botones
+			//Caja Texto Turno
+			textoTurnos = new JTextField(10);
+			
+			cajaTextoTurno.add(new JLabel("Introduce un turno a editar"));
+			cajaTextoTurno.add(Box.createHorizontalStrut(20));
+			cajaTextoTurno.add(textoTurnos);
+			cajaTextoTurno.add(Box.createHorizontalStrut(180));
+			
+			//Caja Botones
 			botonAnyadir = new JButton("Añadir");
 			botonEliminar = new JButton("Eliminar");
 			botonCancelar = new JButton("Cancelar");
 			cajaBotones.add(botonCancelar);
 			cajaBotones.add(Box.createRigidArea(new Dimension(100,0)));
-			cajaBotones.add(botonAnyadir);
-			cajaBotones.add(Box.createRigidArea(new Dimension(100,0)));
 			cajaBotones.add(botonEliminar);
+			cajaBotones.add(Box.createRigidArea(new Dimension(100,0)));
+			cajaBotones.add(botonAnyadir);
 			
-			//Etiquetas
-			etiquetaTitulo = new JLabel("Nombre: ");
-			etiquetaTurnos = new JLabel("Dirección: ");
+			//Caja Opciones
+			comboTurnos = new JComboBox<>(turnosArray);	
+			textoHoras = new JTextField();
+			textoHoras.setPreferredSize(new Dimension(20, 24));
+			etiquetaEquivale = new JLabel("Equivale a: ");
+			etiquetaNumHoras = new JLabel("Número de horas: ");
+			checkAuto = new JCheckBox("AUTO");
 			
-			//TextField
-			textoTurnos = new JTextField(20);
+			cajaOpciones.add(etiquetaEquivale);
+			cajaOpciones.add(comboTurnos);
+			cajaOpciones.add(Box.createHorizontalStrut(80));
+			cajaOpciones.add(etiquetaNumHoras);
+			cajaOpciones.add(textoHoras);
+			cajaOpciones.add(Box.createHorizontalStrut(80));
+			cajaOpciones.add(checkAuto);
+			
 			
 			//Etiqueas
 			etiquetaTitulo = new JLabel("TURNOS EXISTENTES:");
@@ -853,14 +998,16 @@ class MarcoPrincipal extends JFrame{
 			etiquetaTurnos = new JLabel(pintarTurnos());
 			etiquetaTurnos.setAlignmentX(MarcoPrincipal.CENTER_ALIGNMENT);
 			
-			//Añadimos espacios verticales entre las cajas
+			//Caja Fondo
 			cajaFondo.add(Box.createVerticalStrut(150));
 			cajaFondo.add(etiquetaTitulo);
 			cajaFondo.add(Box.createVerticalStrut(50));
 			cajaFondo.add(etiquetaTurnos);
 			cajaFondo.add(Box.createVerticalStrut(50));
-			cajaFondo.add(textoTurnos);
+			cajaFondo.add(cajaTextoTurno);
 			cajaFondo.add(Box.createVerticalStrut(50));
+			cajaFondo.add(cajaOpciones);
+			cajaFondo.add(Box.createVerticalStrut(200));
 			cajaFondo.add(cajaBotones);		
 				
 			//Eventos
@@ -881,13 +1028,14 @@ class MarcoPrincipal extends JFrame{
 			
 			StringBuilder sb = new StringBuilder();
 			
-			for (String turno:listaTurnos){
+			for (String turno:listaNombreTurnos){
 				
 				sb.append(turno+"  ");		
 			}
 			
 			return sb.toString();		
 		}
+		
 				
 		
 			/**
@@ -904,24 +1052,56 @@ class MarcoPrincipal extends JFrame{
 					cambioLamina(0);
 					break;
 					
-				case "Añadir Turno":		
-					listaTurnos.add(textoTurnos.getText());
-					Turnos.setTurnos(listaTurnos);
-					cambioLamina(0);
-					break;
+					
+				case "Añadir Turno":
+					float horas = 0;
+					boolean inputNum = true;
+					
+					if (textoTurnos.getText().length()>0){
+						
+						//Si no se introduce un número, saltará mensaje
+						try{
+							horas = Float.parseFloat(textoHoras.getText());
+							
+						}catch (NumberFormatException n){
+							inputNum = false;
+						}
+						
+						if (inputNum){
+							listaTurnos.add(new Turnos(textoTurnos.getText(),checkAuto.isSelected(), horas,(String) comboTurnos.getSelectedItem()));
+							
+							Turnos.setTurnos(listaTurnos);
+							cambioLamina(0);
+							break;
+							
+						}else{
+							JOptionPane.showMessageDialog(this,"Debe introducir un número válido de horas");
+						}
+											
+					}else{	
+						JOptionPane.showMessageDialog(this,"Debe introducir un turno a editar");		
+					}
+					
+
 					
 				case "Eliminar Turno":
 					
 					String nuevoTurno = textoTurnos.getText();
 					
-					if (listaTurnos.contains(nuevoTurno)){
-						
-						listaTurnos.remove(nuevoTurno);
-						Turnos.setTurnos(listaTurnos);
-						cambioLamina(0);
+					//Para eliminar el elemento en el bucle necesitamos un iterador:
+					Iterator<Turnos> it = listaTurnos.iterator();
+					
+					while (it.hasNext()){
+						if (it.next().getNombre().equals(nuevoTurno)){
+							it.remove();
+							Turnos.setTurnos(listaTurnos);
+							cambioLamina(0);
+						}	
 					}
+
 					break;
 							
+					
 				default:
 					break;
 					
