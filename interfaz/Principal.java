@@ -551,7 +551,7 @@ class MarcoPrincipal extends JFrame{
 				String valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
 				
 			
-				if (valorCelda!=null){
+				if (valorCelda!=null && mapaEquivaleTurno.containsKey(valorCelda)){
 					String valorEquivale = mapaEquivaleTurno.get(valorCelda);
 					
 					switch (valorEquivale) {	
