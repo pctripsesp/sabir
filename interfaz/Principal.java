@@ -4,6 +4,7 @@ package interfaz;
 import cuadrante.Cuadrante;
 import cuadrante.Personal;
 import cuadrante.Turnos;
+import estadistica.Auto;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -49,7 +50,9 @@ public class Principal {
 		new MarcoPrincipal();
 			
 	}
+	
 }
+
 
 
 //Marco
@@ -65,6 +68,7 @@ class MarcoPrincipal extends JFrame{
 	private String[] sAnyos = new String[3];
 	private Map<String,Float> mapaHoraTurno;
 	private Map<String,String> mapaEquivaleTurno;
+	private boolean flagContador = true;
 	
 	
 	public static int width=1280,height=950;
@@ -180,7 +184,10 @@ class MarcoPrincipal extends JFrame{
 		}
 		
 		
+		
+		
 	}
+	
 	
 
 
@@ -198,10 +205,10 @@ class MarcoPrincipal extends JFrame{
 	private List<String> listaNombresTurnos;
 	private ArrayList<String[]> cuadranteCargado;
 	private String [] cabeceraCargada,turnosArray,cabeceraContador;
-	private String [][] cuadranteArray, datosContador;
+	private String [][] cuadranteArray, datosContador,datosCondiciones;
 	private Box cajaCentro,cajaTablas,cajaCuadrante,cajaContador,cajaMenu,cajaFecha,cajaTop;
-	private JTable tablaCuadrante,tablaContador;
-	private JScrollPane scrollCuadrante,scrollContador,scrollCajaTablas;
+	private JTable tablaCuadrante,tablaContador,tablaCondiciones;
+	private JScrollPane scrollCuadrante,scrollContador,scrollCajaTablas,scrollCondiciones;
 	private JPanel laminaMenu,laminaFecha;
 	private JButton botonAuto,botonGuardar;
 	private JComboBox<String> comboTurnos, sMes,sAnyo;
@@ -372,28 +379,11 @@ class MarcoPrincipal extends JFrame{
 					
 					
 					cajaCuadrante.add(tablaCuadrante);
-					
-					/**
-					 * 
-					 * ***********************************************
-					 * pendiente MODIFICAR COMBO EN FUNCIÓN DEL TURNO ANTERIOR**
-					 * ***********************************************
-					 * 
-					 * 
-					 * 
-					 */
 				
-						//Hacemos ComboBox en los elementos de la tabla para poner los turnos
-						//comboTurnos.setEditable(true); //Si queremos que se pueda escribir en la casilla
-						
-					
 						comboTurnos = cargarTurnos();
 						comboTurnos.setActionCommand("Seleccion Turno");
 						comboTurnos.addActionListener(this);
 						editorCombo = new DefaultCellEditor(comboTurnos);
-						
-						
-						//editorCombo = new DefaultCellEditor(cargarTurnos());
 		
 						for (int i=2; i<cabeceraCargada.length;i++){
 							columnasTurnos = tablaCuadrante.getColumnModel().getColumn(i);
@@ -415,26 +405,42 @@ class MarcoPrincipal extends JFrame{
 				 * Caja Horizontal Contador
 				 */
 					cabeceraContador = Cuadrante.getCabeceraContador(mes, anyo);
-					datosContador = Cuadrante.getContador();
+					datosContador = Cuadrante.getContador(mes, anyo);
+					datosCondiciones = Cuadrante.getCondiciones(mes,anyo);
 						
 					cajaContador=Box.createHorizontalBox();
 					cajaTablas.add(cajaContador);
+
 					
-					//Tabla contador
-					tablaContador = new JTable(datosContador,cabeceraContador);
-					
-					//Utilizamos un renderer para la alineación y el color
-					tablaContador.setDefaultRenderer(Object.class, new ContadorRenderer());
-		
-					tablaContador.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);					
-					
-					//Modificamos el tamaño de las celdas
-					tablaContador.getColumnModel().getColumn(0).setMinWidth(150);
-					for (int i=1; i<cabeceraContador.length;i++){
-						tablaContador.getColumnModel().getColumn(i).setMaxWidth(40);
-					}
-					
-					cajaContador.add(tablaContador);
+					//En función del flag cargaremos la tabla contador o la tabla condiciones (el flag se modifica en eventos de lámina)
+					if (flagContador){	
+						
+						//Tabla contador
+						tablaContador = new JTable(datosContador,cabeceraContador);
+						
+						//Utilizamos un renderer para la alineación y el color
+						tablaContador.setDefaultRenderer(Object.class, new ContadorRenderer());
+						tablaContador.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);					
+						
+						//Modificamos el tamaño de las celdas
+						tablaContador.getColumnModel().getColumn(0).setMinWidth(150);
+						for (int i=1; i<cabeceraContador.length;i++){
+							tablaContador.getColumnModel().getColumn(i).setMaxWidth(40);
+						}
+						
+						//Eventos click en tabla contador POPUP MENU
+						JPopupMenu menuPopupCondiciones = new JPopupMenu();
+						JMenuItem modificarCondiciones = new JMenuItem("Modificar Condiciones");
+						modificarCondiciones.setActionCommand("Modificar Condiciones");
+						modificarCondiciones.addActionListener(this);
+						menuPopupCondiciones.add(modificarCondiciones);
+						tablaContador.setComponentPopupMenu(menuPopupCondiciones);
+						
+						cajaContador.add(tablaContador);
+						
+						//Se ejecuta con "botón AUTO"
+						botonAuto.setActionCommand("Auto");
+						botonAuto.addActionListener(this);
 
 						//Scroll contador
 						scrollContador=new JScrollPane(tablaContador, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -443,10 +449,50 @@ class MarcoPrincipal extends JFrame{
 						scrollContador.setMinimumSize(new Dimension(1000,80));
 						scrollContador.setMaximumSize(new Dimension(2000,80));
 					
-					cajaContador.add(scrollContador);
-					actualizarContador();	
-
-				
+						cajaContador.add(scrollContador);
+						actualizarContador();	
+					
+					//Flag Condiciones	
+					}else{
+						
+						//Tabla condiciones
+						tablaCondiciones = new JTable(datosCondiciones, cabeceraContador);
+						
+						//Utilizamos un renderer para la alineación y el color
+						tablaCondiciones.setDefaultRenderer(Object.class, new CondicionesRenderer());				
+						tablaCondiciones.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+						
+						//Modificamos el tamaño de las celdas de la tabla Condiciones
+						tablaCondiciones.getColumnModel().getColumn(0).setMinWidth(150);
+						for (int i=1; i<cabeceraContador.length;i++){
+							tablaCondiciones.getColumnModel().getColumn(i).setMaxWidth(40);
+						}
+						
+						//Se ejecuta con "botón AUTO"
+						botonAuto.setActionCommand("Auto");
+						botonAuto.addActionListener(this);
+						
+						//Eventos click en tabla condiciones POPUP MENU
+						JPopupMenu menuPopupCondiciones = new JPopupMenu();
+						JMenuItem modificarCondiciones = new JMenuItem("Guardar Condiciones");
+						modificarCondiciones.setActionCommand("Guardar Condiciones");
+						modificarCondiciones.addActionListener(this);
+						menuPopupCondiciones.add(modificarCondiciones);
+						tablaCondiciones.setComponentPopupMenu(menuPopupCondiciones);
+					
+						//Añadimos la tabla condiciones
+						cajaContador.add(tablaCondiciones);
+						
+						//Scroll condiciones
+						scrollCondiciones=new JScrollPane(tablaCondiciones, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+						scrollCondiciones.setPreferredSize(new Dimension(1000,80));
+						scrollCondiciones.setMinimumSize(new Dimension(1000,80));
+						scrollCondiciones.setMaximumSize(new Dimension(2000,80));
+						
+						cajaContador.add(scrollCondiciones);
+					}	
+								
+					
 				//Creamos el scroll de todas las tablas
 				scrollCajaTablas = new JScrollPane(cajaTablas,JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 				
@@ -454,7 +500,6 @@ class MarcoPrincipal extends JFrame{
 				
 			
 				
-
 	}
 	
 	private JTable cargarCuadrante(int mes, int anyo){
@@ -550,7 +595,7 @@ class MarcoPrincipal extends JFrame{
 		
 				String valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
 				
-			
+				
 				if (valorCelda!=null && mapaEquivaleTurno.containsKey(valorCelda)){
 					String valorEquivale = mapaEquivaleTurno.get(valorCelda);
 					
@@ -575,7 +620,7 @@ class MarcoPrincipal extends JFrame{
 						break;
 					}
 				
-				}	
+				}
 			}
 						
 			//M
@@ -589,55 +634,25 @@ class MarcoPrincipal extends JFrame{
 				
 			}
 		
-		
-		/*
-		
-		for (int column=2; column<tablaCuadrante.getModel().getColumnCount();column++){
-			contarM=0;
-			contarT=0;
-			contarN=0;
-			for(int row=0;row<tablaCuadrante.getModel().getRowCount();row++){
-		
-				String valorCelda = (String) tablaCuadrante.getModel().getValueAt(row, column);
+		/**
+		 * Hacemos el setContador; con lo anterior solo se muestra el contador, pero no se almacenan los datos
+		 * Utilizaremos los datos almacenados en Auto por ejemplo mediante el getContador().
+		 */
+		String [][] contadorCargado = new String[3][];
+		String [] filaGuardada = new String[cabeceraContador.length];
+		String valorCelda;
 			
+		for(int row=0;row<tablaContador.getModel().getRowCount();row++){
+			for (int column=0; column<tablaContador.getModel().getColumnCount();column++){	
+				valorCelda = (String) tablaContador.getModel().getValueAt(row, column);
+				filaGuardada[column] = valorCelda;
+						 
+			}		
+			contadorCargado[row] = filaGuardada;
+			filaGuardada = new String[cabeceraContador.length];		
 			
-				if (valorCelda!=null){			
-					switch (valorCelda) {	
-					case "M":
-						contarM++;
-						break;
-						
-					case "T":
-						contarT++;
-						break;
-						
-					case "N":
-						contarN++;
-						break;
-						
-					case "X":
-						contarM++;
-						contarN++;
-	
-					default:
-						break;
-					}
-				
-				}	
-			}
-						
-			//M
-			tablaContador.getModel().setValueAt(String.valueOf(contarM), 0, column-1);
-			
-			//T
-			tablaContador.getModel().setValueAt(String.valueOf(contarT), 1, column-1);
-			
-			//N
-			tablaContador.getModel().setValueAt(String.valueOf(contarN), 2, column-1);
-				
-			}
-		
-		*/
+		}		
+		Cuadrante.setContador(contadorCargado);
 		
 		}
 		
@@ -667,36 +682,62 @@ class MarcoPrincipal extends JFrame{
 		Cuadrante.setCuadrante(cuadranteGuardado, mes,anyo);
 	}
 	
+
+	/**
+	 * Guardar Datos del Condiciones
+	 */
+	private void guardarCondiciones(){
+		
+		String [][] condicionesGuardadas = new String[3][];
+		String[] filaGuardada = new String[cabeceraContador.length];
+		String valorCelda;
+		
+		
+		for(int row=0;row<tablaCondiciones.getModel().getRowCount();row++){
+			for (int column=0; column<tablaCondiciones.getModel().getColumnCount();column++){	
+				valorCelda = (String) tablaCondiciones.getModel().getValueAt(row, column);
+				filaGuardada[column] = valorCelda;
+						 
+			}		
+			condicionesGuardadas[row] = filaGuardada;
+			filaGuardada = new String[cabeceraContador.length];		
+			
+		}		
+		Cuadrante.setCondiciones(condicionesGuardadas);
+	}
 	
 	/**
 	 * Eliminar persona. Devuelve lista con el Personal actualizado
 	 */
 	public void eliminarPersona(){
 		 
-		//Cargamos la lista actual de personas	
-		String personaSeleccionada = (String) tablaCuadrante.getValueAt(tablaCuadrante.getSelectedRow(), 1);
-		List<Personal> listaPersonalE = null;
-		
-		//Mensaje confirmación
-		if(JOptionPane.showConfirmDialog(null, "¿Está seguro de que quiere eliminar a "+personaSeleccionada+"?","Eliminar persona del cuadrante",2,JOptionPane.WARNING_MESSAGE)==JOptionPane.YES_OPTION){
+		// ponemos este condicional para evitar que no seleccione ninguna persona y le dé a eliminar
+		if (tablaCuadrante.getSelectedRow() != -1){
+			//Cargamos la lista actual de personas	
+			String personaSeleccionada = (String) tablaCuadrante.getValueAt(tablaCuadrante.getSelectedRow(), 1);
+			List<Personal> listaPersonalE = null;
+			
+			//Mensaje confirmación
+			if(JOptionPane.showConfirmDialog(null, "¿Está seguro de que quiere eliminar a "+personaSeleccionada+"?","Eliminar persona del cuadrante",2,JOptionPane.WARNING_MESSAGE)==JOptionPane.YES_OPTION){
+					
+				listaPersonalE = new ArrayList<>();
 				
-			listaPersonalE = new ArrayList<>();
+				//Cargamos el archivo
+				listaPersonalE = Personal.getPersonal();
 			
-			//Cargamos el archivo
-			listaPersonalE = Personal.getPersonal();
-		
-			//Utilizamos un iterador para poder modificar la lista durante el loop (con un bucle for each salta excepción java.util.ConcurrentModificationException)
-			Iterator<Personal> it = listaPersonalE.iterator();
-			
-			while(it.hasNext()){	
-				if(it.next().getNombre().equals(personaSeleccionada)){
-					Cuadrante.setUltimoMesModificado(mes,anyo);
-					it.remove();
-					//Actualizamos la lista de personal
-					Personal.setPersonal(listaPersonalE);
-				}
-			}	
-		}		
+				//Utilizamos un iterador para poder modificar la lista durante el loop (con un bucle for each salta excepción java.util.ConcurrentModificationException)
+				Iterator<Personal> it = listaPersonalE.iterator();
+				
+				while(it.hasNext()){	
+					if(it.next().getNombre().equals(personaSeleccionada)){
+						Cuadrante.setUltimoMesModificado(mes,anyo);
+						it.remove();
+						//Actualizamos la lista de personal
+						Personal.setPersonal(listaPersonalE);
+					}
+				}	
+			}
+		}
 	}
 	
 
@@ -724,14 +765,14 @@ class MarcoPrincipal extends JFrame{
 			if (mes!=sMes.getSelectedIndex()){
 				mes = sMes.getSelectedIndex();
 				cambioLamina(0);
-			}
+				
+			}			
 			break;
 			
 		case "Cambio Anyo":
 			//Cogemos el texto (año) del Combobox y lo ponemos como int en el anyo
 			anyoSeleccionado = sAnyo.getSelectedIndex();
-			anyo = Integer.parseInt(sAnyos[sAnyo.getSelectedIndex()]);
-			
+			anyo = Integer.parseInt(sAnyos[sAnyo.getSelectedIndex()]);	
 			cambioLamina(0);
 			break;
 		
@@ -739,8 +780,10 @@ class MarcoPrincipal extends JFrame{
 			//Reiniciamos si selecciona algún turno
 			if (comboTurnos.getSelectedItem()!=null){
 				actualizarHoras();
-				guardarCuadrante();
-				actualizarContador();				
+				guardarCuadrante();	
+				if(flagContador){
+					actualizarContador();
+				}
 			}
 			break;
 			
@@ -756,7 +799,29 @@ class MarcoPrincipal extends JFrame{
 			}		
 			break;
 			
+		case "Modificar Condiciones":
+			if (arg0.getSource().getClass().getSimpleName().equalsIgnoreCase("JMenuItem")){	
+				flagContador = !flagContador;
+				cambioLamina(0);
+			}		
+			break;
+		
+		case "Guardar Condiciones":
+			//Guardamos las condiciones si se modifica alguna
+			flagContador = !flagContador;
+			guardarCondiciones();
+			cambioLamina(0);
+			break;
 			
+		case "Auto":
+			if (flagContador == false){
+				flagContador = !flagContador;
+				guardarCondiciones();
+				cambioLamina(0);
+			}
+			Auto.auto();
+			break;
+				
 		default:
 			break;
 			
@@ -1090,8 +1155,9 @@ class MarcoPrincipal extends JFrame{
 					
 					//Para eliminar el elemento en el bucle necesitamos un iterador:
 					Iterator<Turnos> it = listaTurnos.iterator();
-					
+					//System.out.println(nuevoTurno);
 					while (it.hasNext()){
+						//System.out.println(it.next().getNombre());
 						if (it.next().getNombre().equals(nuevoTurno)){
 							it.remove();
 							Turnos.setTurnos(listaTurnos);

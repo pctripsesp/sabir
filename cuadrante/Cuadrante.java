@@ -457,7 +457,7 @@ public class Cuadrante {
 		 * GETTER CONTADOR
 		 */
 		
-		public static String[][] getContador(){
+		public static String[][] getContador(int mes, int anyo){
 			
 			String [][] contador = new String[3][1+7*numSemanas];
 			
@@ -465,9 +465,139 @@ public class Cuadrante {
 			contador[1][0] = "TARDE";
 			contador[2][0] = "NOCHE";
 			
+			try{
+				
+				//Comprobamos si el fichero existe y creamos sus directorios si no existen
+				File f = new File(rutaArchivoCuadrante+"contador"+anyo+"/"+mes+"-"+anyo+".data");
+				f.getParentFile().mkdirs();
+				
+					//Si el fichero no existe, lo creamos con un array vacío
+					if (!f.exists()){	
+						setCondiciones(contador);
+					}
+				
+				//Importamos el objeto serializado
+				FileInputStream fis = new FileInputStream(f);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				
+				//Leemos y almacenamos la lista
+				contador = (String[][]) ois.readObject();
+				ois.close();
+				fis.close();
+				
+				
+			}catch (ClassNotFoundException c) {
+				System.out.println("clase no encontrada CONTADOR");
+				
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo CONTADOR");
+				
+			}
 			
 			return contador;		
 		}
+		
+		
+		/**
+		 * SETTER CONTADOR
+		 */
+		
+		public static void setContador(String[][] contador){
+			
+			try{
+
+				FileOutputStream fos = new FileOutputStream(new File(rutaArchivoCuadrante+"contador"+anyo+"/"+mes+"-"+anyo+".data"));
+				ObjectOutputStream oos = new ObjectOutputStream(fos);
+				
+				//Escribimos el objeto en el archivo
+				oos.writeObject(contador);
+				
+				//Cerramos 
+				oos.close();
+				fos.close();
+				
+				
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo SET CONTADOR");
+			}
+			
+		}
+		
+		
+		
+		
+		/**
+		 * GETTER CONDICIONES. Condiciones de servicio que pondrá el usuario. Ej. Día 23 tiene que haber >3 de Tarde
+		 */
+		
+		public static String[][] getCondiciones(int mes, int anyo){
+			
+			String [][] condiciones = new String[3][1+7*numSemanas];
+			
+			condiciones[0][0] = "MAÑANA";
+			condiciones[1][0] = "TARDE";
+			condiciones[2][0] = "NOCHE";
+			
+			try{
+	
+				//Comprobamos si el fichero existe y creamos sus directorios si no existen
+				File f = new File(rutaArchivoCuadrante+"condiciones"+anyo+"/"+mes+"-"+anyo+".data");
+				f.getParentFile().mkdirs();
+				
+					//Si el fichero no existe, lo creamos con un array vacío
+					if (!f.exists()){	
+						setCondiciones(condiciones);
+					}
+				
+				//Importamos el objeto serializado
+				FileInputStream fis = new FileInputStream(f);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				
+				//Leemos y almacenamos la lista
+				condiciones = (String[][]) ois.readObject();
+				ois.close();
+				fis.close();
+				
+				
+			}catch (ClassNotFoundException c) {
+				System.out.println("clase no encontrada CONDICIONES");
+				
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo CONDICIONES");
+				
+			}
+			
+			return condiciones;
+		}
+		
+		
+		
+		/**
+		 * SETTER CONDICIONES
+		 */
+		
+		public static void setCondiciones(String[][] condiciones){
+			
+			try{
+
+				FileOutputStream fos = new FileOutputStream(new File(rutaArchivoCuadrante+"condiciones"+anyo+"/"+mes+"-"+anyo+".data"));
+				ObjectOutputStream oos = new ObjectOutputStream(fos);
+				
+				//Escribimos el objeto en el archivo
+				oos.writeObject(condiciones);
+				
+				//Cerramos 
+				oos.close();
+				fos.close();
+				
+				
+			}catch (IOException e) {
+				System.out.println("No se ha encontrado el archivo SET CONDICIONES");
+			}
+			
+		}
+		
+		
 		
 		/**
 		 * GETTER NUM SEMANAS. Para adaptar el tamaño de la lámina
