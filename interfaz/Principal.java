@@ -815,8 +815,8 @@ class MarcoPrincipal extends JFrame{
 			
 		case "Auto":
 			if (flagContador == false){
-				flagContador = !flagContador;
 				guardarCondiciones();
+				flagContador = !flagContador;			
 				cambioLamina(0);
 			}
 			Auto.auto();
