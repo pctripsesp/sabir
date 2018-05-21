@@ -1,8 +1,10 @@
 ## 1 - Descripción
 SABIR es una aplicación para realizar cuadrantes de servicios.
 
+## 2 - Ejecución
+java -jar sabir.jar
 
-## 2 - License: GPLv3+
+## 3 - License: GPLv3+
 
 This is free software, and you are welcome to redistribute it under certain conditions.
 
